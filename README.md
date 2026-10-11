@@ -1,4 +1,35 @@
 # strong-skel
+
+## HIRAX compatibility changes in this fork
+
+This fork starts from upstream commit
+`e64dfdcb68186b5545910d5e7002c5765d107145`. The four MATLAB runtime files
+`srskelf_asym.m`, `shypoct.m`, `srskelf_sv_nn.m`, and `srskelf_mv_nn.m`
+were synchronized from the HIRAX server dependency on 2026-10-11.
+The upstream authorship and GPL-2.0-or-later license are retained.
+
+- `srskelf_asym(..., [], opts)` accepts an empty proxy callback. At levels
+  greater than 2, the ID samples **every active non-neighbor DOF**, in both
+  matrix directions for asymmetric input, including accumulated Schur updates.
+  It uses FLAM's deterministic `id`; it does not use randomized sampling.
+- Near-field interactions remain in the elimination. Level 2 uses the
+  upstream weak skeletonization step, and the root uses a dense local factor.
+- The non-transposed asymmetric multiply and solve routines are also available
+  in the repository root, so HIRAX can use `addpath(strong_skel_root)`.
+  The original `mv/` and `sv/` files are retained.
+- A nonempty proxy callback keeps the upstream behavior. Other factorization
+  variants have not been changed. Existing `opts.verb` progress output is retained.
+
+No full original matrix is assembled by this change, but each box's sampled
+far-field block is formed explicitly. This mode can therefore be more expensive
+than a proxy-based factorization.
+
+For a small regression test, add FLAM to the MATLAB path, add this repository's
+`test` directory, and run `test_empty_proxy`. It checks all-far sampling on a
+four-level tree, actual elimination, complex asymmetric multiplication and
+solves, and preservation of the random-number state.
+
+
 A research implementation of RS-S and RS-WS from Minden et al., "A recursive skeletonization factorization based on strong admissibility" ([Journal version](http://dx.doi.org/10.1137/16M1095949), [arXiv](https://arxiv.org/abs/1609.08130))
 
 We emphasize that this code is provided under the GNU GPL as an as-is research reference implementation.  It is not an actively maintained library.  

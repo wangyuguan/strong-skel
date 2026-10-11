@@ -1,4 +1,6 @@
 function F = srskelf_asym(A,x,occ,rank_or_tol,pxyfun,opts)
+% Local modification, 2026-10-04: empty proxy samples every active far DOF.
+% Upstream authors and GPL-2.0-or-later terms: see COPYRIGHT and COPYING.
 % SRSKELF_ASYM   Asymmetric strong recursive skeletonization factorization.
 %
 %    F = SRSKELF_ASYM(A,X,OCC,RANK_OR_TOL,PXYFUN) produces a factorization 
@@ -159,7 +161,12 @@ function F = srskelf_asym(A,x,occ,rank_or_tol,pxyfun,opts)
       % Compute proxy interactions and subselect neighbors
       Kpxy = zeros(0,nslf);
       if lvl > 2
-        [Kpxy,lst] = pxyfun(x,slf,lst,l,t.nodes(i).ctr);
+        if isempty(pxyfun)
+          % Exact far-field control: sample all surviving non-neighbors.
+          lst = reshape(setdiff(find(rem),[slf(:);nbr(:)]),1,[]);
+        else
+          [Kpxy,lst] = pxyfun(x,slf,lst,l,t.nodes(i).ctr);
+        end
       end % if
 
       nlst = length(lst);
